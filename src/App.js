@@ -1,4 +1,19 @@
 import React from 'react';
+import firebase from 'firebase';
+import { apiKey, messagingSenderId, appId } from './env.js';
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey,
+    authDomain: "chat-app-a490d.firebaseapp.com",
+    databaseURL: "https://chat-app-a490d.firebaseio.com",
+    projectId: "chat-app-a490d",
+    storageBucket: "chat-app-a490d.appspot.com",
+    messagingSenderId,
+    appId
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
 
 function App() {
   return (
