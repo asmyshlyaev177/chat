@@ -1,21 +1,41 @@
-import React from 'react';
-import firebase from 'firebase';
-import { apiKey, messagingSenderId, appId } from './env.js';
+import React, { useState, useEffect } from "react";
+import firebase from "firebase/app";
+import "firebase/firestore";
+import { apiKey, messagingSenderId, appId } from "./env.js";
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey,
-    authDomain: "chat-app-a490d.firebaseapp.com",
-    databaseURL: "https://chat-app-a490d.firebaseio.com",
-    projectId: "chat-app-a490d",
-    storageBucket: "chat-app-a490d.appspot.com",
-    messagingSenderId,
-    appId
-  };
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey,
+  authDomain: "chat-app-a490d.firebaseapp.com",
+  databaseURL: "https://chat-app-a490d.firebaseio.com",
+  projectId: "chat-app-a490d",
+  storageBucket: "chat-app-a490d.appspot.com",
+  messagingSenderId,
+  appId
+};
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 function App() {
+  const [channels, setChannels] = useState([]);
+
+  useEffect(() => {
+    async function getChannels() {
+      return await db
+        .collection("channels")
+        .get()
+        .then(snapshot => {
+          const docs = snapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id
+          }));
+          setChannels(docs);
+        });
+    }
+    getChannels();
+  }, []);
+
   return (
     <div className="App">
       <div className="Nav">
@@ -33,17 +53,27 @@ function App() {
           </div>
         </div>
         <nav className="ChannelNav">
-          <a href="/channel/awesome"># awesome</a>
-          <a className="active" href="/channel/general">
-            # general
-          </a>
+          {channels.map(channel => (
+            <a
+              key={channel.id}
+              href={`/channel/${channel.id}`}
+              className="active"
+            >
+              # {channel.id}
+            </a>
+          ))}
         </nav>
       </div>
       <div className="Channel">
         <div className="ChannelMain">
           <div className="ChannelInfo">
             <div className="Topic">
-              Topic: <input className="TopicInput" value="Awesome stuff" />
+              Topic:{" "}
+              <input
+                className="TopicInput"
+                onChange={() => false}
+                value="Awesome stuff"
+              />
             </div>
             <div className="ChannelName">#general</div>
           </div>
