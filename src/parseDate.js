@@ -1,14 +1,8 @@
-const parseDate = date => {
-  const messageOld = new Date().getDate() - date.getDate();
+const parseDate = (dateRaw = new Date()) => {
+  const time = `${dateRaw.getHours()}:${dateRaw.getMinutes()}:${dateRaw.getSeconds()}`;
+  let date = dateRaw.toLocaleDateString();
 
-  switch (messageOld) {
-    case 0:
-      return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-    case 1:
-      return "Yesterday";
-    default:
-      return `${date.toLocaleString()}`;
-  }
+  return {time, date};
 };
 
 export default parseDate;
