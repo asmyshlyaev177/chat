@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import useCollection from "./useCollection";
-import { db } from "./firebase";
 import parseDate from "./parseDate";
-
-const getOnlyDate = date => date.toISOString().slice(0, 10);
-const datesEqual = (date1, date2) => getOnlyDate(date1) === getOnlyDate(date2);
+import useDocWithCache from "./useDocWithCache";
 
 function Messages({ channelId }) {
   const messages = useCollection(`channels/${channelId}/messages`, "createdAt");
@@ -16,8 +13,9 @@ function Messages({ channelId }) {
       {messages.map((message, index) => {
         const previous = messages[index - 1];
         const showDateLine =
-        index === 0 || !datesEqual(previous.createdAt, message.createdAt);
-        const showAvatar = !previous || message.user.id !== previous.user.id;
+          !previous ||
+          olderThen(60 * 60 * 24)(previous.createdAt, message.createdAt);
+        const showAvatar = needShowAvatar(previous, message);
 
         const result = [
           showDateLine ? (
@@ -26,7 +24,7 @@ function Messages({ channelId }) {
               date={parseDate(message.createdAt).date}
             />
           ) : null,
-          showAvatar || showDateLine ? (
+          showAvatar ? (
             <FirstMessage key={message.id} message={message} />
           ) : (
             <MessageNoAvatar key={message.id} message={message} />
@@ -37,20 +35,6 @@ function Messages({ channelId }) {
       })}
     </div>
   );
-}
-
-function useDoc(path) {
-  const [doc, setDoc] = useState();
-  useEffect(() => {
-    db.doc(path).onSnapshot(doc => {
-      setDoc({
-        ...doc.data(),
-        id: doc.id
-      });
-    });
-  }, [path]);
-
-  return doc;
 }
 
 function DateLine({ date }) {
@@ -64,10 +48,9 @@ function DateLine({ date }) {
 }
 
 const FirstMessage = ({ message }) => {
-  const author = useDoc(message.user.path);
+  const author = useDocWithCache(message.user.path);
   const dateRaw = message.createdAt;
   const { time } = parseDate(dateRaw);
-  const { photoURL = "", displayName = "" } = author || {};
 
   return author ? (
     <div key={message.id}>
@@ -75,13 +58,13 @@ const FirstMessage = ({ message }) => {
         <div className="Avatar">
           <img
             alt={`${author.displayName} avatar`}
-            src={photoURL ? photoURL : ""}
+            src={author && author.photoURL ? author.photoURL : ""}
             style={{ width: "100%", fontSize: 0 }}
           />
         </div>
         <div className="Author">
           <div>
-            <span className="UserName">{displayName}</span>
+            <span className="UserName">{author && author.displayName}</span>
             <span className="TimeStamp">{time}</span>
           </div>
           <div className="MessageContent">{message.text}</div>
@@ -98,5 +81,25 @@ const MessageNoAvatar = ({ message }) => (
     </div>
   </div>
 );
+
+const olderThen = (time = 60 * 5) => (prevDate, date) =>
+  (date.getTime() - prevDate.getTime()) / 1000 > time;
+
+const needShowAvatar = (prev, message) => {
+  const isFirst = !prev;
+  if (isFirst) {
+    return true;
+  }
+
+  const diffUser = message.user.id !== prev.user.id;
+  if (diffUser) {
+    return true;
+  }
+
+  const hasBeenAWhile = olderThen(60 * 10)(prev.createdAt, message.createdAt);
+  if (hasBeenAWhile) {
+    return true;
+  }
+};
 
 export default Messages;

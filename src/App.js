@@ -12,7 +12,7 @@ function App() {
       <Nav user={user} />
       <Router>
         <Channel path="channel/:channelId" user={user} />
-        <Redirect from="/" to="channel/general" />
+        <Redirect from="/" to="channel/general" noThrow />
       </Router>
     </div>
   ) : (
@@ -47,22 +47,20 @@ function Login() {
 }
 
 function useAuth() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState();
 
   useEffect(() => {
-    return firebase.auth().onAuthStateChanged(user => {
-      if (user) {
+    return firebase.auth().onAuthStateChanged(userRes => {
+      if (userRes) {
         const firebaseUser = {
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          uid: user.uid
+          displayName: userRes.displayName,
+          photoURL: userRes.photoURL,
+          uid: userRes.uid
         };
-        setUser(firebaseUser);
         db.collection("users")
-          .doc(user.uid)
+          .doc(userRes.uid)
           .set(firebaseUser, { merge: true });
-      } else {
-        setUser(null);
+        setUser(firebaseUser);
       }
     });
   }, []);
