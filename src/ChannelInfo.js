@@ -1,12 +1,12 @@
 import React from 'react';
 
-function ChannelInfo() {
+function ChannelInfo({ channelId }) {
   return (
     <div className="ChannelInfo">
       <div className="Topic">
         Topic: <input className="TopicInput" value="Awesome stuff" readOnly/>
       </div>
-      <div className="ChannelName">#general</div>
+      <div className="ChannelName">#{channelId}</div>
     </div>
   );
 }

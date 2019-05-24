@@ -6,8 +6,8 @@ import parseDate from "./parseDate";
 const getOnlyDate = date => date.toISOString().slice(0, 10);
 const datesEqual = (date1, date2) => getOnlyDate(date1) === getOnlyDate(date2);
 
-function Messages() {
-  const messages = useCollection("channels/general/messages", "createdAt");
+function Messages({ channelId }) {
+  const messages = useCollection(`channels/${channelId}/messages`, "createdAt");
 
   return (
     <div className="Messages">
@@ -15,9 +15,9 @@ function Messages() {
 
       {messages.map((message, index) => {
         const previous = messages[index - 1];
-        const showAvatar = !previous || message.user.id !== previous.user.id;
         const showDateLine =
-          index === 0 || !datesEqual(previous.createdAt, message.createdAt);
+        index === 0 || !datesEqual(previous.createdAt, message.createdAt);
+        const showAvatar = !previous || message.user.id !== previous.user.id;
 
         const result = [
           showDateLine ? (
@@ -26,7 +26,7 @@ function Messages() {
               date={parseDate(message.createdAt).date}
             />
           ) : null,
-          showAvatar ? (
+          showAvatar || showDateLine ? (
             <FirstMessage key={message.id} message={message} />
           ) : (
             <MessageNoAvatar key={message.id} message={message} />

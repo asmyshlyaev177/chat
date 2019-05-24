@@ -1,14 +1,14 @@
 import React from 'react';
 import { db } from './firebase';
 
-function ChatInputBox({ user }) {
+function ChatInputBox({ channelId, user }) {
   return (
     <form onSubmit={event => {
       event.preventDefault();
       const value = event.target.elements[0].value;
       if (!value.length) return false;
       db
-        .collection('channels/general/messages')
+        .collection(`channels/${channelId}/messages`)
         .add({
           user: db.collection('users').doc(user.uid),
           text: value,
@@ -16,7 +16,7 @@ function ChatInputBox({ user }) {
         })
         event.target.reset();
     }} className="ChatInputBox">
-      <input className="ChatInput" placeholder="Message #general" />
+      <input className="ChatInput" placeholder={`Message #${channelId}`} />
     </form>
   );
 }
