@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import useCollection from "./useCollection";
 import parseDate from "./parseDate";
 import useDocWithCache from "./useDocWithCache";
 
+const useChatScroll = ref => {
+  useEffect(() => {
+    if (!ref) return false;
+    const node = ref.current;
+    node.scrollTop = node.scrollHeight;
+  });
+}
+
 function Messages({ channelId }) {
   const messages = useCollection(`channels/${channelId}/messages`, "createdAt");
+  const scrollRef = useRef();
+  
+  useChatScroll(scrollRef);
 
   return (
-    <div className="Messages">
+    <div ref={scrollRef} className="Messages">
       <div className="EndOfMessages">That's every message!</div>
 
       {messages.map((message, index) => {
