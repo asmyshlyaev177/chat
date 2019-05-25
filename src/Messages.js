@@ -1,24 +1,36 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useCollection from "./useCollection";
 import parseDate from "./parseDate";
 import useDocWithCache from "./useDocWithCache";
 
-const useChatScroll = ref => {
+
+function ChatScroller(props) {
+  const ref = useRef();
+  const [shouldScroll, setShouldScroll] = useState(false);
+
   useEffect(() => {
-    if (!ref) return false;
-    const node = ref.current;
-    node.scrollTop = node.scrollHeight;
+    if (shouldScroll) {
+      const node = ref.current;
+      node.scrollTop = node.scrollHeight;
+    }
   });
+  
+  const handleScroll = () => {
+    const node = ref.current;
+    const { scrollTop, clientHeight, scrollHeight } = node;
+    const atBottom = scrollHeight === clientHeight + scrollTop;
+    setShouldScroll(atBottom);
+  }
+
+  return <div {...props} ref={ref} onScroll={handleScroll} />;
 }
 
 function Messages({ channelId }) {
   const messages = useCollection(`channels/${channelId}/messages`, "createdAt");
-  const scrollRef = useRef();
   
-  useChatScroll(scrollRef);
 
   return (
-    <div ref={scrollRef} className="Messages">
+    <ChatScroller className="Messages">
       <div className="EndOfMessages">That's every message!</div>
 
       {messages.map((message, index) => {
@@ -44,7 +56,7 @@ function Messages({ channelId }) {
 
         return result;
       })}
-    </div>
+    </ChatScroller>
   );
 }
 
