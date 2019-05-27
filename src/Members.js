@@ -1,17 +1,22 @@
-import React from 'react';
+import React from "react";
+import useCollection from "./useCollection";
 
-function Members() {
+function Members({ channelId }) {
+  const members = useCollection("users", "displayName", [
+    `channels.${channelId}`,
+    "==",
+    true
+  ]);
+
   return (
     <div className="Members">
       <div>
-        <div className="Member">
-          <div className="MemberStatus offline" />
-          Ryan Florence
-        </div>
-        <div className="Member">
-          <div className="MemberStatus online" />
-          cleverbot
-        </div>
+        {members && members.length && members.map(member => (
+          <div key={'member ' + member.id} className="Member">
+            <div className={`MemberStatus ${member.status ? member.status.state : 'offline'}`} />
+            {member.displayName}
+          </div>
+        ))}
       </div>
     </div>
   );
